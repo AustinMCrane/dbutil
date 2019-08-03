@@ -50,3 +50,18 @@ func GetIDList(tx *sql.Tx, query string, args []interface{}) ([]int, error) {
 
 	return ids, nil
 }
+
+func GetID(tx *sql.Tx, query string, args ...interface{}) (int, error) {
+	var id int
+	row := tx.QueryRow(query, args...)
+	err := row.Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, err
+		}
+
+		return 0, errors.Wrap(err, "unable to get id")
+	}
+
+	return id, nil
+}
