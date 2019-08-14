@@ -4,6 +4,8 @@ package dbutil
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -25,7 +27,7 @@ func Connect(dbName string, dbUser string, dbPassword string, dbHost string, dbP
 	return db, nil
 }
 
-func GetIDList(tx *sql.Tx, query string, args []interface{}) ([]int, error) {
+func GetIDList(tx *sql.Tx, query string, args ...interface{}) ([]int, error) {
 	rows, err := tx.Query(query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "query failed")
@@ -64,4 +66,14 @@ func GetID(tx *sql.Tx, query string, args ...interface{}) (int, error) {
 	}
 
 	return id, nil
+}
+
+func FormatQuery(query string) string {
+	numParams := strings.Count(query, "?")
+
+	for i := 1; i <= numParams; i++ {
+		query = strings.Replace(query, "?", "$"+strconv.Itoa(i), 1)
+	}
+
+	return query
 }
