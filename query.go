@@ -68,6 +68,46 @@ func GetID(tx *sql.Tx, query string, args ...interface{}) (int, error) {
 	return id, nil
 }
 
+func GetUUIDList(tx *sql.Tx, query string, args ...interface{}) ([]string, error) {
+	rows, err := tx.Query(query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "query failed")
+	}
+
+	var uuids []string
+	for rows.Next() {
+		var uuid string
+
+		err := rows.Scan(&uuid)
+		if err != nil {
+			rows.Close()
+			return nil, errors.Wrap(err, "error scanning row")
+		}
+
+		uuids = append(uuids, uuid)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error iterating over rows")
+	}
+
+	return uuids, nil
+}
+func GetUUID(tx *sql.Tx, query string, args ...interface{}) (string, error) {
+	var uuid string
+	row := tx.QueryRow(query, args...)
+	err := row.Scan(&uuid)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", err
+		}
+
+		return "", errors.Wrap(err, "unable to get uuid")
+	}
+
+	return uuid, nil
+}
+
 func FormatQuery(query string) string {
 	numParams := strings.Count(query, "?")
 
